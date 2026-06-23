@@ -231,14 +231,8 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-
-    import streamlit as st
-
-    st.write("Inside engineer_features:", list(df.columns))
-    st.write("Shape:", df.shape)
-
-    print("AVAILABLE COLUMNS:", list(df.columns))
     """Add derived columns used throughout the dashboard."""
+
     df = df.copy()
 
     df["Profit Margin %"] = np.where(
@@ -247,37 +241,38 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         0.0
     )
 
-    df["Year"]    = df["Order Date"].dt.year
-    df["Month"]   = df["Order Date"].dt.month
+    df["Year"] = df["Order Date"].dt.year
+    df["Month"] = df["Order Date"].dt.month
     df["Month Name"] = df["Order Date"].dt.strftime("%b")
-    df["Quarter"] = df["Order Date"].dt.quarter.map({1: "Q1", 2: "Q2", 3: "Q3", 4: "Q4"})
-    df["Week"]    = df["Order Date"].dt.isocalendar().week.astype(int)
+    df["Quarter"] = df["Order Date"].dt.quarter.map(
+        {1: "Q1", 2: "Q2", 3: "Q3", 4: "Q4"}
+    )
+    df["Week"] = df["Order Date"].dt.isocalendar().week.astype(int)
     df["Day of Week"] = df["Order Date"].dt.day_name()
-    df["YearMonth"]   = df["Order Date"].dt.to_period("M").astype(str)
+    df["YearMonth"] = df["Order Date"].dt.to_period("M").astype(str)
 
-    
-    import streamlit as st
+    customer_col = next(
+        (c for c in df.columns if c.strip().lower() == "customer id"),
+        None
+    )
 
-    st.write("DEBUG COLUMNS:", list(df.columns))
-    st.write(df.head())
-    
-    # Customer Lifetime Value = total revenue per customer
-customer_col = next(
-    (c for c in df.columns if c.strip().lower() == "customer id"),
-    None
-)
+    if customer_col is None:
+        raise KeyError(
+            f"Customer ID column not found. Available columns: {list(df.columns)}"
+        )
 
-if customer_col is None:
-    st.write("Available columns:", list(df.columns))
-    st.stop()
+    df["Customer Lifetime Value"] = (
+        df.groupby(customer_col)["Sales"]
+        .transform("sum")
+        .round(2)
+    )
 
-clv = df.groupby(customer_col)["Sales"].transform("sum").round(2)
-df["Customer Lifetime Value"] = clv
+    df["Order Frequency"] = (
+        df.groupby(customer_col)["Order ID"]
+        .transform("count")
+    )
 
-freq = df.groupby(customer_col)["Order ID"].transform("count")
-df["Order Frequency"] = freq
-
-return df
+    return df
 
 
 # ── Filtering helper ──────────────────────────────────────────────────────────
