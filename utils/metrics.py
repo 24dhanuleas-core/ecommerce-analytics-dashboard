@@ -54,12 +54,35 @@ def growth_rate(current: float, previous: float) -> float:
 
 
 def monthly_revenue(df: pd.DataFrame) -> pd.DataFrame:
-    """Monthly aggregated revenue & profit."""
-    return (
-        df.groupby("YearMonth", as_index=False)
-        .agg(Revenue=("Sales", "sum"), Profit=("Profit", "sum"), Orders=("Order ID", "nunique"))
-        .sort_values("YearMonth")
+    """Monthly revenue, profit and order trends."""
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+        None
     )
+
+    if order_col:
+        monthly = (
+            df.groupby("YearMonth", as_index=False)
+            .agg(
+                Revenue=("Sales", "sum"),
+                Profit=("Profit", "sum"),
+                Orders=(order_col, "nunique")
+            )
+            .sort_values("YearMonth")
+        )
+    else:
+        monthly = (
+            df.groupby("YearMonth", as_index=False)
+            .agg(
+                Revenue=("Sales", "sum"),
+                Profit=("Profit", "sum")
+            )
+            .sort_values("YearMonth")
+        )
+        monthly["Orders"] = 0
+
+    return monthly
 
 
 def category_revenue(df: pd.DataFrame) -> pd.DataFrame:
