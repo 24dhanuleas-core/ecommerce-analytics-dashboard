@@ -153,6 +153,11 @@ def load_data(uploaded_file=None) -> pd.DataFrame:
 # ── Data cleaning ─────────────────────────────────────────────────────────────
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    # Convert underscores to spaces
+    df.columns = df.columns.str.replace("_", " ")
+    df.columns = [c.strip() for c in df.columns]
+
+    # existing code...
     """
     Clean and standardize a raw sales DataFrame.
 
@@ -164,9 +169,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
       5. Drop / fill nulls
       6. Remove invalid rows
     """
-
-    df.columns = df.columns.str.replace("_", " ")
-    
     df = df.copy()
 
     # ── 1. Normalize column names
