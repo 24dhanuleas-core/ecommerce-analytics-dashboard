@@ -60,6 +60,8 @@ with c5:
                             title=f"Top {n} Customers by Revenue")
     st.plotly_chart(fig_tc, use_container_width=True)
 with c6:
+          st.write("TOP_CUST COLUMNS:", top_cust.columns.tolist())
+          st.write(top_cust.head())
     fig_clv = horizontal_bar(top_cust, x="CLV", y="Customer Name",
                              title=f"Top {n} Customers by Lifetime Value", color=GREEN)
     st.plotly_chart(fig_clv, use_container_width=True)
