@@ -223,7 +223,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 # ── Feature engineering ───────────────────────────────────────────────────────
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-print("AVAILABLE COLUMNS:", list(df.columns))
+    print("AVAILABLE COLUMNS:", list(df.columns))
     """Add derived columns used throughout the dashboard."""
     df = df.copy()
 
