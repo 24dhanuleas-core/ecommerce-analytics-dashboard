@@ -190,7 +190,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     # ── 2. Remove duplicates
     if "Order ID" in df.columns:
         df.drop_duplicates(subset=["Order ID"], keep="first", inplace=True)
-    df.drop_duplicates(inplace=True)
+        df.drop_duplicates(inplace=True)
 
     # ── 3. Parse dates
     if "Order Date" in df.columns:
@@ -217,8 +217,11 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df["Discount"] = df["Discount"].clip(0, 1)
 
     df.reset_index(drop=True, inplace=True)
+    
     import streamlit as st
+    
     st.write("Before engineer_features:", list(df.columns))
+    
     return engineer_features(df)
 
 
@@ -259,7 +262,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     st.write(df.head())
     
     # Customer Lifetime Value = total revenue per customer
-   customer_col = next(
+customer_col = next(
     (c for c in df.columns if c.strip().lower() == "customer id"),
     None
 )
@@ -269,13 +272,12 @@ if customer_col is None:
     st.stop()
 
 clv = df.groupby(customer_col)["Sales"].transform("sum").round(2)
-    df["Customer Lifetime Value"] = clv
+df["Customer Lifetime Value"] = clv
 
-    # Order frequency per customer
-    freq = df.groupby("Customer ID")["Order ID"].transform("count")
-    df["Order Frequency"] = freq
+freq = df.groupby(customer_col)["Order ID"].transform("count")
+df["Order Frequency"] = freq
 
-    return df
+return df
 
 
 # ── Filtering helper ──────────────────────────────────────────────────────────
