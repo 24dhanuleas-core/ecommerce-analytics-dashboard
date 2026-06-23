@@ -8,20 +8,41 @@ import numpy as np
 
 def kpi_summary(df: pd.DataFrame) -> dict:
     """Return a dict of top-level KPIs from a filtered DataFrame."""
-    total_orders    = df["Order ID"].nunique()
-    total_customers = df["Customer ID"].nunique() if "Customer ID" in df.columns else df["Customer Name"].nunique()
-    total_revenue   = df["Sales"].sum()
-    total_profit    = df["Profit"].sum()
-    aov             = total_revenue / total_orders if total_orders else 0
-    profit_margin   = (total_profit / total_revenue * 100) if total_revenue else 0
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+        None
+    )
+
+    customer_col = next(
+        (c for c in df.columns if c.strip().lower() in ["customer id", "customer_id"]),
+        None
+    )
+
+    total_orders = (
+        df[order_col].nunique()
+        if order_col
+        else len(df)
+    )
+
+    total_customers = (
+        df[customer_col].nunique()
+        if customer_col
+        else df["Customer Name"].nunique()
+    )
+
+    total_revenue = df["Sales"].sum()
+    total_profit = df["Profit"].sum()
+    aov = total_revenue / total_orders if total_orders else 0
+    profit_margin = (total_profit / total_revenue * 100) if total_revenue else 0
 
     return {
-        "Total Revenue":    round(total_revenue, 2),
-        "Total Profit":     round(total_profit, 2),
-        "Total Orders":     total_orders,
-        "Total Customers":  total_customers,
-        "Avg Order Value":  round(aov, 2),
-        "Profit Margin %":  round(profit_margin, 2),
+        "Total Revenue": round(total_revenue, 2),
+        "Total Profit": round(total_profit, 2),
+        "Total Orders": total_orders,
+        "Total Customers": total_customers,
+        "Avg Order Value": round(aov, 2),
+        "Profit Margin %": round(profit_margin, 2),
     }
 
 
