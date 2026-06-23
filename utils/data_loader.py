@@ -252,14 +252,17 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["YearMonth"] = df["Order Date"].dt.to_period("M").astype(str)
 
     customer_col = next(
-        (c for c in df.columns if c.strip().lower() == "customer id"),
+        (c for c in df.columns if c.strip().lower() in ["customer id", "customer_id"]),
+        None
+    )
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
         None
     )
 
     if customer_col is None:
-        raise KeyError(
-            f"Customer ID column not found. Available columns: {list(df.columns)}"
-        )
+        raise KeyError(f"Customer ID column not found. Columns: {list(df.columns)}")
 
     df["Customer Lifetime Value"] = (
         df.groupby(customer_col)["Sales"]
@@ -267,21 +270,16 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         .round(2)
     )
 
-    order_col = next(
-    (c for c in df.columns if c.strip().lower() == "order id"),
-    None
-    )
-
-    if order_col is None:
+    if order_col:
+        df["Order Frequency"] = (
+            df.groupby(customer_col)[order_col]
+            .transform("count")
+        )
+    else:
         df["Order Frequency"] = (
             df.groupby(customer_col)[customer_col]
             .transform("count")
-      )
-    else:
-    df["Order Frequency"] = (
-        df.groupby(customer_col)[order_col]
-        .transform("count")
-    ))
+        )
 
     return df
 
