@@ -104,16 +104,16 @@ def generate_synthetic_data(n_rows: int = 10_000, seed: int = 42) -> pd.DataFram
         order_date = rng.choice(date_pool)
 
         rows.append({
-            "Order ID":     f"ORD-{100000 + i}",
-            "Customer ID":  cid,
-            "Customer Name": cname,
-            "Product Name": product,
+            "Order_ID":     f"ORD-{100000 + i}",
+            "Customer_ID":  cid,
+            "Customer_Name": cname,
+            "Product_Name": product,
             "Category":     cat_name,
-            "Sub Category": sub,
+            "Sub_Category": sub,
             "Region":       region_name,
             "State":        state,
             "City":         city,
-            "Order Date":   order_date,
+            "Order_Date":   order_date,
             "Quantity":     qty,
             "Sales":        sales,
             "Profit":       profit,
@@ -164,6 +164,9 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
       5. Drop / fill nulls
       6. Remove invalid rows
     """
+
+    df.columns = df.columns.str.replace("_", " ")
+    
     df = df.copy()
 
     # ── 1. Normalize column names
@@ -175,7 +178,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         "Sub_Category": "Sub Category",
         "Subcategory":  "Sub Category",
         "Order_Date":   "Order Date",
-        "Order Id":     "Order ID",
+        "Order_Id":     "Order ID",
         "Customer_Id":  "Customer ID",
         "Customer_Name":"Customer Name",
         "Product_Name": "Product Name",
