@@ -193,7 +193,26 @@ def customer_summary(df: pd.DataFrame) -> pd.DataFrame:
         )
     )
 
+    # CLV
     cust_df["CLV"] = cust_df["Revenue"]
+
+    # Avg Order Value
+    cust_df["Avg Order Value"] = (
+        cust_df["Revenue"] / cust_df["Orders"]
+    ).fillna(0)
+
+    # Customer Segments
+    q1 = cust_df["Revenue"].quantile(0.25)
+    q3 = cust_df["Revenue"].quantile(0.75)
+
+    def segment_customer(revenue):
+        if revenue >= q3:
+            return "High Value"
+        elif revenue >= q1:
+            return "Medium Value"
+        return "Low Value"
+
+    cust_df["Segment"] = cust_df["Revenue"].apply(segment_customer)
 
     return cust_df.sort_values("Revenue", ascending=False)
 
