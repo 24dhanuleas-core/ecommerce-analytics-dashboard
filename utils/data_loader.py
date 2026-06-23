@@ -241,9 +241,12 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["Day of Week"] = df["Order Date"].dt.day_name()
     df["YearMonth"]   = df["Order Date"].dt.to_period("M").astype(str)
 
-    if "Customer ID" not in df.columns:
-        raise Exception(f"Customer ID missing. Columns found: {list(df.columns)}")
+    import streamlit as st
 
+    if "Customer ID" not in df.columns:
+        st.write("Columns found:", list(df.columns))
+        st.stop()
+    
     # Customer Lifetime Value = total revenue per customer
     clv = df.groupby("Customer ID")["Sales"].transform("sum").round(2)
     df["Customer Lifetime Value"] = clv
