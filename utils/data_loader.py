@@ -220,10 +220,20 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     import streamlit as st
     st.write("Before engineer_features:", list(df.columns))
     return engineer_features(df)
-    
+
+
+
 # ── Feature engineering ───────────────────────────────────────────────────────
 
+
+
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+
+    import streamlit as st
+
+    st.write("Inside engineer_features:", list(df.columns))
+    st.write("Shape:", df.shape)
+
     print("AVAILABLE COLUMNS:", list(df.columns))
     """Add derived columns used throughout the dashboard."""
     df = df.copy()
@@ -242,11 +252,11 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["Day of Week"] = df["Order Date"].dt.day_name()
     df["YearMonth"]   = df["Order Date"].dt.to_period("M").astype(str)
 
-    import streamlit as st
+   # import streamlit as st
 
-    if "Customer ID" not in df.columns:
-        st.write("Columns found:", list(df.columns))
-        st.stop()
+    #if "Customer ID" not in df.columns:
+     #   st.write("Columns found:", list(df.columns))
+      #  st.stop()
     
     # Customer Lifetime Value = total revenue per customer
     clv = df.groupby("Customer ID")["Sales"].transform("sum").round(2)
