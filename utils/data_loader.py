@@ -252,14 +252,23 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["Day of Week"] = df["Order Date"].dt.day_name()
     df["YearMonth"]   = df["Order Date"].dt.to_period("M").astype(str)
 
-   # import streamlit as st
+    
+    import streamlit as st
 
-    #if "Customer ID" not in df.columns:
-     #   st.write("Columns found:", list(df.columns))
-      #  st.stop()
+    st.write("DEBUG COLUMNS:", list(df.columns))
+    st.write(df.head())
     
     # Customer Lifetime Value = total revenue per customer
-    clv = df.groupby("Customer ID")["Sales"].transform("sum").round(2)
+   customer_col = next(
+    (c for c in df.columns if c.strip().lower() == "customer id"),
+    None
+)
+
+if customer_col is None:
+    st.write("Available columns:", list(df.columns))
+    st.stop()
+
+clv = df.groupby(customer_col)["Sales"].transform("sum").round(2)
     df["Customer Lifetime Value"] = clv
 
     # Order frequency per customer
