@@ -223,6 +223,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 # ── Feature engineering ───────────────────────────────────────────────────────
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+print("AVAILABLE COLUMNS:", list(df.columns))
     """Add derived columns used throughout the dashboard."""
     df = df.copy()
 
@@ -239,6 +240,9 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["Week"]    = df["Order Date"].dt.isocalendar().week.astype(int)
     df["Day of Week"] = df["Order Date"].dt.day_name()
     df["YearMonth"]   = df["Order Date"].dt.to_period("M").astype(str)
+
+    if "Customer ID" not in df.columns:
+        raise Exception(f"Customer ID missing. Columns found: {list(df.columns)}")
 
     # Customer Lifetime Value = total revenue per customer
     clv = df.groupby("Customer ID")["Sales"].transform("sum").round(2)
