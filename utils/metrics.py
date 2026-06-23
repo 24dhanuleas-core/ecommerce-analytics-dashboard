@@ -118,11 +118,35 @@ def category_revenue(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def region_revenue(df: pd.DataFrame) -> pd.DataFrame:
-    return (
-        df.groupby("Region", as_index=False)
-        .agg(Revenue=("Sales", "sum"), Profit=("Profit", "sum"), Orders=("Order ID", "nunique"))
-        .sort_values("Revenue", ascending=False)
+    """Revenue by region."""
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+        None
     )
+
+    if order_col:
+        reg_df = (
+            df.groupby("Region", as_index=False)
+            .agg(
+                Revenue=("Sales", "sum"),
+                Profit=("Profit", "sum"),
+                Orders=(order_col, "nunique")
+            )
+            .sort_values("Revenue", ascending=False)
+        )
+    else:
+        reg_df = (
+            df.groupby("Region", as_index=False)
+            .agg(
+                Revenue=("Sales", "sum"),
+                Profit=("Profit", "sum")
+            )
+            .sort_values("Revenue", ascending=False)
+        )
+        reg_df["Orders"] = 0
+
+    return reg_df
 
 
 def top_products(df: pd.DataFrame, n: int = 10) -> pd.DataFrame:
