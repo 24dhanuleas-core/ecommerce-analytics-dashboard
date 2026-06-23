@@ -217,9 +217,10 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df["Discount"] = df["Discount"].clip(0, 1)
 
     df.reset_index(drop=True, inplace=True)
+    import streamlit as st
+    st.write("Before engineer_features:", list(df.columns))
     return engineer_features(df)
-
-
+    
 # ── Feature engineering ───────────────────────────────────────────────────────
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
