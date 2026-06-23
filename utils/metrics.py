@@ -168,18 +168,32 @@ def bottom_products(df: pd.DataFrame, n: int = 10) -> pd.DataFrame:
 
 
 def customer_summary(df: pd.DataFrame) -> pd.DataFrame:
-    summary = (
-        df.groupby(["Customer ID", "Customer Name"], as_index=False)
+    """Customer-level metrics."""
+
+    customer_col = next(
+        (c for c in df.columns if c.strip().lower() in ["customer id", "customer_id"]),
+        None
+    )
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+        None
+    )
+
+    group_cols = ["Customer Name"]
+    if customer_col:
+        group_cols.insert(0, customer_col)
+
+    cust_df = (
+        df.groupby(group_cols, as_index=False)
         .agg(
             Revenue=("Sales", "sum"),
             Profit=("Profit", "sum"),
-            Orders=("Order ID", "nunique"),
-            CLV=("Customer Lifetime Value", "first"),
+            Orders=(order_col, "nunique") if order_col else ("Sales", "count")
         )
-        .sort_values("Revenue", ascending=False)
     )
-    summary["Avg Order Value"] = (summary["Revenue"] / summary["Orders"]).round(2)
-    return summary
+
+    return cust_df.sort_values("Revenue", ascending=False)
 
 
 def state_revenue(df: pd.DataFrame) -> pd.DataFrame:
