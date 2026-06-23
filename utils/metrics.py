@@ -86,11 +86,35 @@ def monthly_revenue(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def category_revenue(df: pd.DataFrame) -> pd.DataFrame:
-    return (
-        df.groupby("Category", as_index=False)
-        .agg(Revenue=("Sales", "sum"), Profit=("Profit", "sum"), Orders=("Order ID", "nunique"))
-        .sort_values("Revenue", ascending=False)
+    """Revenue by category."""
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+        None
     )
+
+    if order_col:
+        cat_df = (
+            df.groupby("Category", as_index=False)
+            .agg(
+                Revenue=("Sales", "sum"),
+                Profit=("Profit", "sum"),
+                Orders=(order_col, "nunique")
+            )
+            .sort_values("Revenue", ascending=False)
+        )
+    else:
+        cat_df = (
+            df.groupby("Category", as_index=False)
+            .agg(
+                Revenue=("Sales", "sum"),
+                Profit=("Profit", "sum")
+            )
+            .sort_values("Revenue", ascending=False)
+        )
+        cat_df["Orders"] = 0
+
+    return cat_df
 
 
 def region_revenue(df: pd.DataFrame) -> pd.DataFrame:
