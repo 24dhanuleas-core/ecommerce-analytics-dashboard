@@ -193,6 +193,8 @@ def customer_summary(df: pd.DataFrame) -> pd.DataFrame:
         )
     )
 
+    cust_df["CLV"] = cust_df["Revenue"]
+
     return cust_df.sort_values("Revenue", ascending=False)
 
 
