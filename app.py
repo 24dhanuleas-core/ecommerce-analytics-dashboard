@@ -167,18 +167,29 @@ st.session_state.df_filtered = df_filtered
 st.markdown("## 📊 E-Commerce Analytics Dashboard")
 st.markdown("Use the **sidebar** to navigate between pages and apply global filters.")
 
-c1, c2, c3 = st.columns(3)
 customer_col = next(
-    (c for c in df_filtered.columns
-     if c.strip().lower() in ["customer id", "customer_id", "customer id", "customer id"]),
+    (
+        c for c in df_filtered.columns
+        if c.strip().lower() in [
+            "customer id",
+            "customer_id",
+            "customer id"
+        ]
+    ),
     None
 )
 
+c1, c2, c3 = st.columns(3)
+
+c1.info(f"**{len(df_filtered):,}** orders after filters")
+
 if customer_col:
-    c2.info(f"**{df_filtered[customer_col].nunique():,}** unique customers")
+    c2.info(
+        f"**{df_filtered[customer_col].nunique():,}** unique customers"
+    )
 else:
     c2.info("Customer count unavailable")
-c2.info(f"**{df_filtered['Customer ID'].nunique():,}** unique customers")
+
 c3.info(f"**${df_filtered['Sales'].sum():,.0f}** total revenue")
 
 st.markdown("""
