@@ -189,7 +189,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # ── 3. Parse dates
     if "Order Date" in df.columns:
-        df["Order Date"] = pd.to_datetime(df["Order Date"], infer_datetime_format=True, errors="coerce")
+        df["Order Date"] = pd.to_datetime(df["Order Date"], errors="coerce")
         df.dropna(subset=["Order Date"], inplace=True)
 
     # ── 4. Numeric columns
