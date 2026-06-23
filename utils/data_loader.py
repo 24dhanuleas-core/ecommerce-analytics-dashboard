@@ -267,10 +267,21 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         .round(2)
     )
 
-    df["Order Frequency"] = (
-        df.groupby(customer_col)["Order ID"]
-        .transform("count")
+    order_col = next(
+    (c for c in df.columns if c.strip().lower() == "order id"),
+    None
     )
+
+    if order_col is None:
+        df["Order Frequency"] = (
+            df.groupby(customer_col)[customer_col]
+            .transform("count")
+      )
+    else:
+    df["Order Frequency"] = (
+        df.groupby(customer_col)[order_col]
+        .transform("count")
+    ))
 
     return df
 
