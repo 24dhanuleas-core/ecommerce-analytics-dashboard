@@ -35,26 +35,68 @@ granularity = st.radio(
 )
 
 # ── Aggregate ─────────────────────────────────────────────────────────────────
+
 def aggregate(df: pd.DataFrame, gran: str) -> pd.DataFrame:
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+        None
+    )
+
     if gran == "Daily":
-        grp = df.groupby("Order Date").agg(Revenue=("Sales","sum"), Profit=("Profit","sum"), Orders=("Order ID","nunique")).reset_index()
-        grp.rename(columns={"Order Date":"Period"}, inplace=True)
+        grp = df.groupby("Order Date").agg(
+            Revenue=("Sales", "sum"),
+            Profit=("Profit", "sum"),
+            Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+        ).reset_index()
+
+        grp.rename(columns={"Order Date": "Period"}, inplace=True)
         grp["Period"] = grp["Period"].astype(str)
+
     elif gran == "Weekly":
-        df2 = df.copy(); df2["Period"] = df2["Order Date"].dt.strftime("%Y-W%U")
-        grp = df2.groupby("Period").agg(Revenue=("Sales","sum"), Profit=("Profit","sum"), Orders=("Order ID","nunique")).reset_index()
+        df2 = df.copy()
+        df2["Period"] = df2["Order Date"].dt.strftime("%Y-W%U")
+
+        grp = df2.groupby("Period").agg(
+            Revenue=("Sales", "sum"),
+            Profit=("Profit", "sum"),
+            Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+        ).reset_index()
+
     elif gran == "Monthly":
-        grp = df.groupby("YearMonth").agg(Revenue=("Sales","sum"), Profit=("Profit","sum"), Orders=("Order ID","nunique")).reset_index()
-        grp.rename(columns={"YearMonth":"Period"}, inplace=True)
+        grp = df.groupby("YearMonth").agg(
+            Revenue=("Sales", "sum"),
+            Profit=("Profit", "sum"),
+            Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+        ).reset_index()
+
+        grp.rename(columns={"YearMonth": "Period"}, inplace=True)
+
     elif gran == "Quarterly":
-        df2 = df.copy(); df2["Period"] = df2["Year"].astype(str) + "-" + df2["Quarter"]
-        grp = df2.groupby("Period").agg(Revenue=("Sales","sum"), Profit=("Profit","sum"), Orders=("Order ID","nunique")).reset_index()
+        df2 = df.copy()
+        df2["Period"] = df2["Year"].astype(str) + "-" + df2["Quarter"]
+
+        grp = df2.groupby("Period").agg(
+            Revenue=("Sales", "sum"),
+            Profit=("Profit", "sum"),
+            Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+        ).reset_index()
+
     else:  # Yearly
-        df2 = df.copy(); df2["Period"] = df2["Year"].astype(str)
-        grp = df2.groupby("Period").agg(Revenue=("Sales","sum"), Profit=("Profit","sum"), Orders=("Order ID","nunique")).reset_index()
+        df2 = df.copy()
+        df2["Period"] = df2["Year"].astype(str)
+
+        grp = df2.groupby("Period").agg(
+            Revenue=("Sales", "sum"),
+            Profit=("Profit", "sum"),
+            Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+        ).reset_index()
+
     grp = grp.sort_values("Period")
     grp["Growth %"] = grp["Revenue"].pct_change().mul(100).round(2)
+
     return grp
+
 
 agg_df = aggregate(df, granularity)
 
