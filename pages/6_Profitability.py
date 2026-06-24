@@ -123,10 +123,17 @@ st.plotly_chart(fig_box, use_container_width=True)
 # ── Loss-making products ──────────────────────────────────────────────────────
 st.divider()
 st.markdown("### ⚠️ Loss-Making Products")
-prod_loss = (df.groupby(["Product Name","Category"], as_index=False)
-               .agg(Revenue=("Sales","sum"), Profit=("Profit","sum"), Orders=("Order ID","nunique"))
-               .query("Profit < 0")
-               .sort_values("Profit"))
+
+prod_loss = (
+    df.groupby(["Product Name","Category"], as_index=False)
+      .agg(
+          Revenue=("Sales","sum"),
+          Profit=("Profit","sum"),
+          Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+      )
+      .query("Profit < 0")
+      .sort_values("Profit")
+)
 
 if prod_loss.empty:
     st.success("No loss-making products in the current selection.")
