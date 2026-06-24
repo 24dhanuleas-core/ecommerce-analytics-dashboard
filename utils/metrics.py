@@ -217,11 +217,20 @@ def customer_summary(df: pd.DataFrame) -> pd.DataFrame:
     return cust_df.sort_values("Revenue", ascending=False)
 
 
-def state_revenue(df: pd.DataFrame) -> pd.DataFrame:
+def state_revenue(df):
+
+    order_col = next(
+        (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+        None
+    )
+
     return (
         df.groupby("State", as_index=False)
-        .agg(Revenue=("Sales", "sum"), Profit=("Profit", "sum"), Orders=("Order ID", "nunique"))
-        .sort_values("Revenue", ascending=False)
+        .agg(
+            Revenue=("Sales", "sum"),
+            Profit=("Profit", "sum"),
+            Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+        )
     )
 
 
