@@ -74,7 +74,17 @@ df_disc = df.copy()
 df_disc["Discount Tier"] = pd.cut(df_disc["Discount"], bins=disc_bins,
                                    labels=disc_labels, include_lowest=True)
 disc_agg = (df_disc.groupby("Discount Tier", as_index=False, observed=True)
-              .agg(Revenue=("Sales","sum"), Profit=("Profit","sum"), Orders=("Order ID","nunique"))
+            order_col = next(
+    (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+    None
+)
+
+.agg(
+    Revenue=("Sales", "sum"),
+    Profit=("Profit", "sum"),
+    Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+)
+              
               .assign(**{"Margin %": lambda x: (x["Profit"]/x["Revenue"]*100).round(2)}))
 
 fig_disc = px.bar(disc_agg, x="Discount Tier", y="Margin %",
