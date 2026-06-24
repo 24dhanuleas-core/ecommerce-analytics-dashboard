@@ -57,11 +57,19 @@ st.divider()
 
 # ── City ranking ──────────────────────────────────────────────────────────────
 st.markdown("### 🏙️ Top Cities by Revenue")
-city_df = (df.groupby(["City","State","Region"], as_index=False)
-             .agg(Revenue=("Sales","sum"), Profit=("Profit","sum"),
-                  Orders=("Order ID","nunique"))
-             .sort_values("Revenue", ascending=False)
-             .head(20))
+order_col = next(
+    (c for c in df.columns if c.strip().lower() in ["order id", "order_id"]),
+    None
+)
+
+city_df = (
+    df.groupby("City", as_index=False)
+      .agg(
+          Revenue=("Sales", "sum"),
+          Profit=("Profit", "sum"),
+          Orders=(order_col, "nunique") if order_col else ("Sales", "count")
+      )
+)
 
 fig_city = horizontal_bar(city_df, x="Revenue", y="City",
                            title="Top 20 Cities — Revenue")
