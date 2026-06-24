@@ -115,10 +115,11 @@ with ca:
     ins("Top State",  f"<b>{top_state['State']}</b> generates <b>${top_state['Revenue']:,.0f}</b> in revenue.", "green")
     ins("Top Region", f"<b>{top_region['Region']}</b> is the highest-performing region with <b>${top_region['Revenue']:,.0f}</b>.")
 with cb:
-ins(
+    ins(
     "Top City",
     f"<b>{top_city['City']}</b> leads city-level revenue at <b>${top_city['Revenue']:,.0f}</b>.",
     "green"
-)    low_region = reg_df.iloc[-1]
+)
+    low_region = reg_df.iloc[-1]
     ins("Growth Opportunity",
         f"<b>{low_region['Region']}</b> has the lowest revenue (<b>${low_region['Revenue']:,.0f}</b>). Consider targeted campaigns.")
