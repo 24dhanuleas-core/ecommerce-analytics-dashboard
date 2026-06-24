@@ -84,7 +84,7 @@ disc_agg = (df_disc.groupby("Discount Tier", as_index=False, observed=True)
     Profit=("Profit", "sum"),
     Orders=(order_col, "nunique") if order_col else ("Sales", "count")
 )
-              
+
               .assign(**{"Margin %": lambda x: (x["Profit"]/x["Revenue"]*100).round(2)}))
 
 fig_disc = px.bar(disc_agg, x="Discount Tier", y="Margin %",
