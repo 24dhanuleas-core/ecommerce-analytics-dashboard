@@ -210,28 +210,3 @@ st.markdown("""
 > Built with **Streamlit · Plotly · Pandas · NumPy**
 """)
 
-
-import streamlit as st
-import utils.data_loader as dl   # safer import
-
-st.title("E-commerce Analytics Dashboard")
-
-uploaded = st.file_uploader("Upload your dataset", type=["csv", "xlsx"])
-
-if uploaded:
-    try:
-        st.session_state.df_raw = dl.load_data(uploaded)
-        st.write("✅ Data preview:", st.session_state.df_raw.head())
-
-        # Example filter usage
-        filtered = dl.apply_filters(
-            st.session_state.df_raw,
-            categories=["Technology"],
-            regions=["West"]
-        )
-        st.write("Filtered preview:", filtered.head())
-
-    except Exception as e:
-        st.error(f"Unexpected error: {e}")
-else:
-    st.info("Please upload a dataset to begin.")
