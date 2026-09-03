@@ -75,6 +75,44 @@ p, li, span    { color: #CBD5E1; }
 </style>
 """, unsafe_allow_html=True)
 
+# ── Custom CSS (navy blue theme) ──────────────────────────────────────────────
+st.markdown("""
+<style>
+/* Global background and text colors */
+[data-testid="stAppViewContainer"] { background: #0F172A; }
+[data-testid="stSidebar"]          { background: #1E293B; border-right: 1px solid #334155; }
+h1, h2, h3, h4 { color: #F1F5F9; }
+p, li, span    { color: #CBD5E1; }
+
+/* Table styling */
+table {
+    color: #F1F5F9 !important;   /* force table text to white */
+}
+thead th {
+    color: #F1F5F9 !important;   /* header text white */
+}
+tbody td {
+    color: #F1F5F9 !important;   /* body text white */
+}
+
+/* Keep your KPI, Insight, Sidebar styles as before */
+.kpi-card {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 8px;
+    transition: transform 0.2s;
+}
+.kpi-card:hover { transform: translateY(-2px); border-color: #2563EB; }
+.kpi-label { font-size: 13px; color: #94A3B8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi-value { font-size: 28px; font-weight: 700; color: #F1F5F9; margin: 4px 0; }
+.kpi-delta-pos { font-size: 13px; color: #10B981; }
+.kpi-delta-neg { font-size: 13px; color: #EF4444; }
+</style>
+""", unsafe_allow_html=True)
+
+
 
 # ── Session state: data ───────────────────────────────────────────────────────
 if "df_raw" not in st.session_state:
