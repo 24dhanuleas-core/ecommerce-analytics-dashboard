@@ -157,4 +157,3 @@ def apply_filters(
 
     if date_range and len(date_range) == 2:
         start, end = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
-
