@@ -12,7 +12,6 @@ def generate_synthetic_data(n_rows: int = 10_000, seed: int = 42) -> pd.DataFram
     """Generate synthetic e-commerce sales data for testing."""
     rng = np.random.default_rng(seed)
     rows = []
-    # Example: generate random sales records
     for i in range(n_rows):
         qty = int(rng.integers(1, 11))
         unit_price = float(rng.uniform(10, 500))
@@ -65,13 +64,6 @@ def load_data(uploaded_file=None) -> pd.DataFrame:
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean and standardize the raw sales DataFrame.
-    Steps:
-      1. Normalize column names
-      2. Remove duplicates
-      3. Parse dates
-      4. Cast numeric columns
-      5. Drop/fill nulls
-      6. Remove invalid rows
     """
     df = df.copy()
     df.columns = df.columns.str.replace("_", " ").str.strip().str.title()
@@ -122,8 +114,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     df.reset_index(drop=True, inplace=True)
 
-    st.write("Before engineer_features:", list(df.columns))
-
     return engineer_features(df)
 
 # ── Feature engineering ───────────────────────────────────────────────────────
@@ -132,20 +122,22 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     # Profit margin percentage
-    df["Profit Margin %"] = np.where(
-        df["Sales"] != 0,
-        (df["Profit"] / df["Sales"] * 100).round(2),
-        0.0
-    )
+    if "Sales" in df.columns and "Profit" in df.columns:
+        df["Profit Margin %"] = np.where(
+            df["Sales"] != 0,
+            (df["Profit"] / df["Sales"] * 100).round(2),
+            0.0
+        )
 
     # Date-based features
-    df["Year"] = df["Order Date"].dt.year
-    df["Month"] = df["Order Date"].dt.month
-    df["Month Name"] = df["Order Date"].dt.strftime("%b")
-    df["Quarter"] = df["Order Date"].dt.quarter.map({1: "Q1", 2: "Q2", 3: "Q3", 4: "Q4"})
-    df["Week"] = df["Order Date"].dt.isocalendar().week.astype(int)
-    df["Day of Week"] = df["Order Date"].dt.day_name()
-    df["YearMonth"] = df["Order Date"].dt.to_period("M").astype(str)
+    if "Order Date" in df.columns:
+        df["Year"] = df["Order Date"].dt.year
+        df["Month"] = df["Order Date"].dt.month
+        df["Month Name"] = df["Order Date"].dt.strftime("%b")
+        df["Quarter"] = df["Order Date"].dt.quarter.map({1: "Q1", 2: "Q2", 3: "Q3", 4: "Q4"})
+        df["Week"] = df["Order Date"].dt.isocalendar().week.astype(int)
+        df["Day of Week"] = df["Order Date"].dt.day_name()
+        df["YearMonth"] = df["Order Date"].dt.to_period("M").astype(str)
 
     # Customer lifetime value
     if "Customer ID" in df.columns and "Sales" in df.columns:
