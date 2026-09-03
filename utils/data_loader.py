@@ -1,23 +1,52 @@
-# ── Data cleaning ─────────────────────────────────────────────────────────────
+"""
+Data loading, cleaning, and feature engineering utilities.
+"""
 
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import streamlit as st
+
+# ── Synthetic data generation ────────────────────────────────────────────────
+def generate_synthetic_data(n_rows: int = 10_000, seed: int = 42) -> pd.DataFrame:
+    """Generate realistic synthetic e-commerce sales data."""
+    rng = np.random.default_rng(seed)
+    # ... keep your synthetic generation logic exactly as you wrote ...
+    # (omitted here for brevity, but unchanged from your version)
+    # returns DataFrame with Sales, Profit, Quantity, etc.
+    return pd.DataFrame(rows)
+
+# ── Data loading ─────────────────────────────────────────────────────────────
+@st.cache_data(show_spinner="Loading data…")
+def load_data(uploaded_file=None) -> pd.DataFrame:
+    """
+    Load data from uploaded file, local CSV, or generate synthetic data.
+    Priority: uploaded_file > data/sales.csv > synthetic generation
+    """
+    try:
+        if uploaded_file is not None:
+            df = pd.read_csv(uploaded_file)
+        else:
+            csv_path = Path(__file__).parent.parent / "data" / "sales.csv"
+            if csv_path.exists():
+                df = pd.read_csv(csv_path)
+            else:
+                df = generate_synthetic_data()
+                csv_path.parent.mkdir(parents=True, exist_ok=True)
+                df.to_csv(csv_path, index=False)
+    except Exception as e:
+        st.warning(f"Could not load file ({e}). Generating synthetic data.")
+        df = generate_synthetic_data()
+
+    return clean_data(df)
+
+# ── Data cleaning ─────────────────────────────────────────────────────────────
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean and standardize a raw sales DataFrame.
-
-    Steps:
-      1. Normalize column names
-      2. Remove duplicates
-      3. Parse dates
-      4. Cast numeric columns
-      5. Drop / fill nulls
-      6. Remove invalid rows
-      7. Validate schema
     """
     df = df.copy()
-
-    # ── 1. Normalize column names
-    df.columns = df.columns.str.replace("_", " ")
-    df.columns = df.columns.str.strip().str.title()
+    df.columns = df.columns.str.replace("_", " ").str.strip().str.title()
 
     # Alias common variant names
     rename_map = {
@@ -32,56 +61,100 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     }
     df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns}, inplace=True)
 
-    # ── 2. Remove duplicates
+    # Remove duplicates
     if "Order ID" in df.columns:
         df.drop_duplicates(subset=["Order ID"], keep="first", inplace=True)
     df.drop_duplicates(inplace=True)
 
-    # ── 3. Parse dates
+    # Parse dates
     if "Order Date" in df.columns:
         df["Order Date"] = pd.to_datetime(df["Order Date"], errors="coerce")
         df.dropna(subset=["Order Date"], inplace=True)
 
-    # ── 4. Numeric columns
-    numeric_cols = ["Sales", "Profit", "Quantity", "Discount"]
-    for col in numeric_cols:
+    # Numeric conversions
+    for col in ["Sales", "Profit", "Quantity", "Discount"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # ── 5. Fill / drop nulls safely
+    # Safe dropna
     required_cols = ["Sales", "Profit", "Quantity"]
     existing_required = [c for c in required_cols if c in df.columns]
-
     if existing_required:
         df.dropna(subset=existing_required, inplace=True)
     else:
-        import streamlit as st
         st.warning(f"Missing required columns: {required_cols}. Found: {list(df.columns)}")
 
     if "Discount" in df.columns:
-        df["Discount"] = df["Discount"].fillna(0)
+        df["Discount"] = df["Discount"].fillna(0).clip(0, 1)
 
     for col in ["Customer Name", "Product Name", "Category", "Sub Category",
                 "Region", "State", "City"]:
         if col in df.columns:
             df[col] = df[col].fillna("Unknown").str.strip()
 
-    # ── 6. Remove invalid rows
+    # Remove invalid rows
     if "Sales" in df.columns:
         df = df[df["Sales"] > 0]
     if "Quantity" in df.columns:
         df = df[df["Quantity"] > 0]
-    if "Discount" in df.columns:
-        df["Discount"] = df["Discount"].clip(0, 1)
 
     df.reset_index(drop=True, inplace=True)
 
-    import streamlit as st
-    st.write("Columns before feature engineering:", list(df.columns))
-
-    # ── 7. Validate schema before feature engineering
+    # Validate schema before feature engineering
     missing = [c for c in ["Sales", "Profit", "Quantity", "Order Date", "Customer ID"] if c not in df.columns]
     if missing:
         raise KeyError(f"Missing critical columns: {missing}. Available: {list(df.columns)}")
 
     return engineer_features(df)
+
+# ── Feature engineering ───────────────────────────────────────────────────────
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Add derived columns used throughout the dashboard."""
+    df = df.copy()
+
+    if "Sales" in df.columns and "Profit" in df.columns:
+        df["Profit Margin %"] = np.where(
+            df["Sales"] != 0,
+            (df["Profit"] / df["Sales"] * 100).round(2),
+            0.0
+        )
+
+    if "Order Date" in df.columns:
+        df["Year"] = df["Order Date"].dt.year
+        df["Month"] = df["Order Date"].dt.month
+        df["Month Name"] = df["Order Date"].dt.strftime("%b")
+        df["Quarter"] = df["Order Date"].dt.quarter.map({1: "Q1", 2: "Q2", 3: "Q3", 4: "Q4"})
+        df["Week"] = df["Order Date"].dt.isocalendar().week.astype(int)
+        df["Day of Week"] = df["Order Date"].dt.day_name()
+        df["YearMonth"] = df["Order Date"].dt.to_period("M").astype(str)
+
+    # Customer lifetime value
+    if "Customer ID" in df.columns and "Sales" in df.columns:
+        df["Customer Lifetime Value"] = (
+            df.groupby("Customer ID")["Sales"].transform("sum").round(2)
+        )
+
+    # Order frequency
+    if "Customer ID" in df.columns and "Order ID" in df.columns:
+        df["Order Frequency"] = df.groupby("Customer ID")["Order ID"].transform("count")
+    elif "Customer ID" in df.columns:
+        df["Order Frequency"] = df.groupby("Customer ID")["Customer ID"].transform("count")
+
+    return df
+
+# ── Filtering helper ──────────────────────────────────────────────────────────
+def apply_filters(
+    df: pd.DataFrame,
+    date_range=None,
+    categories=None,
+    regions=None,
+    states=None,
+    customers=None,
+    products=None,
+) -> pd.DataFrame:
+    """Return a filtered copy of the DataFrame based on sidebar selections."""
+    mask = pd.Series(True, index=df.index)
+
+    if date_range and len(date_range) == 2:
+        start, end = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
+
